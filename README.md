@@ -16,7 +16,7 @@
 
 ### STEP 2
 
-   modify the version of kafka you want to install and other variables in "kafka_servers" file under group_vars directory. By default it will install the kafka version of "kafka_2.10-0.10.2.1"
+   modify the version of kafka you want to install and other variables in "kafka_servers" file under group_vars directory. By default it will install the kafka version of "kafka_2.12-0.2.2.0"
 
 ### STEP 3
 
