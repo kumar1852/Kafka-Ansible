@@ -1,0 +1,4 @@
+[kafka_servers]
+172.31.5.162 kafka_broker_id=1  zk_id=1 kfk_server=172.31.5.162
+172.31.8.245 kafka_broker_id=2  zk_id=2 kfk_server=172.31.8.245
+172.31.1.61 kafka_broker_id=3  zk_id=3 kfk_server=172.31.1.61

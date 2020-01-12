@@ -1,0 +1,16 @@
+kafka:
+  download_link: http://archive.apache.org/dist/kafka
+  version: 1.0.1
+  package: kafka_2.12-2.2.0
+  port: 9092
+  log_dirs: /data/kafka
+
+#symbolic_link: /opt
+install_path: /opt
+
+zookeeper:
+  datadir: /data/zookeeper
+  port: 2181
+  tick_time: 2000
+  init_limit: 10
+  sync_limit: 5

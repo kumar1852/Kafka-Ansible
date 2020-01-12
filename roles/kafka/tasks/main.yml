@@ -1,0 +1,127 @@
+---
+
+
+- name: download kafka tar
+  get_url: url={{ kafka.download_link }}/{{ kafka.version }}/{{ kafka.package }}.tgz dest={{ install_path }} mode=0644 validate_certs=no
+
+- name: unarchive kafka package
+  unarchive: src={{ install_path }}/{{ kafka.package }}.tgz dest={{ install_path }} remote_src=yes
+
+- name: delete the tar package
+  file: path={{ install_path }}/{{ kafka.package }}.tgz state=absent
+
+#- name: Create Symbolic link for Kafka
+#  file: src={{ install_path }}/{{ kafka.package }} path={{ symbolic_link }}/kafka state=link
+
+- name: rename kafka
+  command: mv {{ kafka.package }} kafka
+  args:
+    chdir: /opt
+#    executable: /bin/bash
+
+- name: create zookeeper directory
+  command: mkdir -p /data/zookeeper force=yes
+
+- name: create kafka directory
+  command: mkdir -p /data/kafka force=yes
+
+- name: set up zookeeper ID
+  template: src=myid dest={{ zookeeper.datadir }}/myid
+
+- name: Set Zookeepr properties
+  template: src=zookeeper.properties dest={{ install_path }}/kafka/config/zookeeper.properties force=yes
+
+#- name: Start zookeeper
+#  command: bash {{ symbolic_link }}/kafka/bin/zookeeper-server-start.sh -daemon {{ symbolic_link }}/kafka/config/zookeeper.properties
+
+- name: Set up Kafka Configiuration
+  template: src=server.properties dest={{ install_path }}/kafka/config/server.properties force=yes
+
+#- name: new ip
+#  command: hostname -i
+#  register: command_output
+
+#- set_fact:
+#    ipaddress: "{{ command_output.stdout }}"
+
+#- debug:
+#   msg: "{{ command_output.stdout }}"
+
+#- debug:
+#   msg: "{{ command_output.stderr }}"
+
+#- name: Placing local ip to the file server properties
+#  lineinfile:
+#    state: present
+#    dest: /opt/kafka/config/server.properties
+#    regexp: '^#?advertised.listeners='
+#    line: 'advertised.listeners=PLAINTEXT://{{ command_output.stdout }}:9092'
+
+#- name: Start Kafka
+#  shell: nohup {{ symbolic_link }}/kafka/bin/kafka-server-start.sh {{ symbolic_link }}/kafka/config/server.properties &
+#  register: output
+#- name: Debug.stdout Output.
+#  debug: msg="{{ output.stdout }}"
+#- name: Debug.stderr Output.
+#  debug: msg="{{ output.stderr }}"
+
+- name: creating init.d ZooKeeper
+  template: 
+    src: zookeeper 
+    dest: /etc/init.d/zookeeper 
+    force: yes
+    owner: root
+    group: root
+    mode: 0755
+
+- name: creating init.d Kafka
+  template: 
+    src: kafka 
+    dest: /etc/init.d/kafka 
+    force: yes
+    owner: root
+    group: root
+    mode: 0755
+
+#- name: Enable the zookeeper
+#  service:
+#    name: zookeeper
+#    state: started
+#- name: Enable service zookeeper, and not touch the running state
+#  service:
+#    name: zookeeper
+#    enabled: yes
+
+- name: Add Zookeeper to chkconfig
+  shell: chkconfig --add zookeeper 
+
+- name: Set level for chkconfig
+  shell: chkconfig --level 35 zookeeper on
+
+- name: Start Zookeeper
+  shell: service zookeeper start
+
+- name: Wait for port 2181 to be available
+  wait_for: host="{{ groups['kafka_servers'][0] }}" port={{ zookeeper.port }} delay=15
+
+#- name: Enable the kafka
+#  service:
+#    name: kafka
+#    state: started
+
+#- name: Enable service kafka, and not touch the running state
+#  service:
+#    name: kafka
+#    enabled: yesi
+
+- name: Add Kafka to chkconfig
+  shell: chkconfig --add kafka
+
+- name: Set level for chkconfig
+  shell: chkconfig --level 35 kafka on
+
+- name: Start Kafka
+  shell: service kafka start
+
+- name: Wait for Port 9092 to be avialable.
+  wait_for: host="{{ groups['kafka_servers'][0] }}" port=9092 delay=10 timeout=20
